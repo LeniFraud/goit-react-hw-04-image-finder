@@ -1,7 +1,7 @@
 import { Component } from 'react';
-import { ToastContainer, toast } from 'react-toastify';
+import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import { getPicturesByQuery } from 'services/pixabay-api';
+import { getImagesByQuery, alertOnResolved, alertOnRejected } from 'services';
 import {
   Searchbar,
   ImageGallery,
@@ -12,10 +12,10 @@ import {
 
 export class App extends Component {
   state = {
-    pictures: [],
+    images: [],
     query: '',
     page: 1,
-    showLoadButton: false,
+    totalImages: 0,
     showTopButton: false,
     status: 'idle',
   };
@@ -34,19 +34,23 @@ export class App extends Component {
     if (prevState.query !== query || prevState.page !== page) {
       this.setState({
         status: 'pending',
-        showLoadButton: false,
       });
 
-      getPicturesByQuery(query, page)
-        .then(({ hits, totalHits }) => {
-          this.totalImagesAlert(hits.length, totalHits, page);
+      getImagesByQuery(query, page)
+        .then(({ images, totalImages }) => {
+          alertOnResolved(images.length, totalImages, page);
           this.setState(prevState => ({
-            pictures: [...prevState.pictures, ...hits],
-            showLoadButton: Math.ceil(hits.length / 12),
+            images: [...prevState.images, ...images],
+            totalImages,
+            status: 'resolved',
           }));
         })
-        .catch(error => console.log(error))
-        .finally(() => this.setState({ status: 'idle' }));
+        .catch(() => {
+          this.setState({
+            status: 'rejected',
+          });
+          alertOnRejected();
+        });
     }
   }
 
@@ -56,24 +60,11 @@ export class App extends Component {
     }
 
     this.setState({
-      pictures: [],
+      images: [],
       query,
       page: 1,
+      totalImages: 0,
     });
-  };
-
-  totalImagesAlert = (value, amount, page) => {
-    if (value === 0 && amount === 0) {
-      toast.error(
-        'Sorry, there are no images matching your search query. Please try again.'
-      );
-    }
-    if ((value === 0) & (amount !== 0)) {
-      toast.info("We're sorry, but you've reached the end of search results.");
-    }
-    if (value !== 0 && page === 1) {
-      toast.success(`Hooray! We found ${amount} images.`);
-    }
   };
 
   onLoadMoreBtnClick = () => {
@@ -91,12 +82,14 @@ export class App extends Component {
   };
 
   render() {
-    const { pictures, showLoadButton, showTopButton, status } = this.state;
+    const { images, totalImages, showTopButton, status } = this.state;
+    const showLoadButton =
+      totalImages !== images.length && status === 'resolved';
 
     return (
       <>
         <Searchbar onSubmit={this.searchFormSubmit} />
-        {!!pictures.length && <ImageGallery pictures={pictures} />}
+        {!!images.length && <ImageGallery images={images} />}
         {status === 'pending' && <Loader />}
         {showLoadButton && <LoadButton onClick={this.onLoadMoreBtnClick} />}
         {showTopButton && <TopButton onClick={this.onTopBtnClick} />}
