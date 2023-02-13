@@ -14,11 +14,11 @@ export const getImagesByQuery = async (query, page) => {
   };
 
   const { data } = await axios.get(BASE_URL, { params });
-  const images = data.hits.map(image => ({
-    id: image.id,
-    tags: image.tags,
-    webformatURL: image.webformatURL,
-    largeImageURL: image.largeImageURL,
+  const images = data.hits.map(({ id, tags, webformatURL, largeImageURL }) => ({
+    id,
+    tags,
+    webformatURL,
+    largeImageURL,
   }));
   const totalImages = data.totalHits;
 
