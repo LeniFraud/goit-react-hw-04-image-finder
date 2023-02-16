@@ -14,12 +14,15 @@ export const getImagesByQuery = async (query, page) => {
   };
 
   const { data } = await axios.get(BASE_URL, { params });
-  const images = data.hits.map(({ id, tags, webformatURL, largeImageURL }) => ({
-    id,
-    tags,
-    webformatURL,
-    largeImageURL,
-  }));
+  const images = data.hits.map(
+    ({ id, tags, webformatURL, largeImageURL }, idx) => ({
+      id,
+      tags,
+      webformatURL,
+      largeImageURL,
+      isScrollAnchor: !idx,
+    })
+  );
   const totalImages = data.totalHits;
 
   return { images, totalImages };

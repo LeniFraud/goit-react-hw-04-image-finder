@@ -7,6 +7,9 @@ import { Header, Form, Input, Button } from './Searchbar.styled';
 export const Searchbar = ({ onSubmit }) => {
   const [searchQuery, setSearchQuery] = useState('');
 
+  // const headerHeight = useRef();
+  // console.log(headerHeight.current.offsetHeight);
+
   const handleChange = e => setSearchQuery(e.currentTarget.value);
 
   const handleSubmit = e => {
