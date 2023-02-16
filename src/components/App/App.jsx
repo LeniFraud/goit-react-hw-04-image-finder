@@ -1,7 +1,12 @@
-import { Component } from 'react';
+import { useState, useEffect } from 'react';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import { getImagesByQuery, alertOnResolved, alertOnRejected } from 'services';
+import {
+  getImagesByQuery,
+  alertOnResolved,
+  alertOnRejected,
+  alertOnRepeatedQuery,
+} from 'services';
 import {
   Searchbar,
   ImageGallery,
@@ -10,91 +15,76 @@ import {
   TopButton,
 } from 'components';
 
-export class App extends Component {
-  state = {
-    images: [],
-    query: '',
-    page: 1,
-    totalImages: 0,
-    showTopButton: false,
-    status: 'idle',
-  };
+const Status = {
+  IDLE: 'idle',
+  PENDING: 'pending',
+  RESOLVED: 'resolved',
+  REJECTED: 'rejected',
+};
 
-  componentDidMount() {
-    window.addEventListener('scroll', this.onWindowScroll);
-  }
+export const App = () => {
+  const [images, setImages] = useState([]);
+  const [query, setQuery] = useState('');
+  const [page, setPage] = useState(1);
+  const [totalImages, setTotalImages] = useState(0);
+  const [showTopButton, setShowTopButton] = useState(false);
+  const [status, setStatus] = useState(Status.IDLE);
 
-  componentWillUnmount() {
-    window.removeEventListener('scroll', this.onWindowScroll);
-  }
+  const showLoadButton =
+    totalImages !== images.length && status === Status.RESOLVED;
 
-  componentDidUpdate(_, prevState) {
-    const { query, page } = this.state;
+  useEffect(() => {
+    window.addEventListener('scroll', onWindowScroll);
+    return () => {
+      window.removeEventListener('scroll', onWindowScroll);
+    };
+  }, []);
 
-    if (prevState.query !== query || prevState.page !== page) {
-      this.setState({
-        status: 'pending',
+  useEffect(() => {
+    if (!query) return;
+
+    setStatus(Status.PENDING);
+    getImagesByQuery(query, page)
+      .then(({ images, totalImages }) => {
+        alertOnResolved(images.length, totalImages, page);
+        setImages(prevImages => [...prevImages, ...images]);
+        setTotalImages(totalImages);
+        setStatus(Status.RESOLVED);
+      })
+      .catch(() => {
+        setStatus(Status.REJECTED);
+        alertOnRejected();
       });
+  }, [page, query]);
 
-      getImagesByQuery(query, page)
-        .then(({ images, totalImages }) => {
-          alertOnResolved(images.length, totalImages, page);
-          this.setState(prevState => ({
-            images: [...prevState.images, ...images],
-            totalImages,
-            status: 'resolved',
-          }));
-        })
-        .catch(() => {
-          this.setState({
-            status: 'rejected',
-          });
-          alertOnRejected();
-        });
-    }
-  }
+  const searchFormSubmit = searchQuery => {
+    const normalizedQuery = searchQuery.trim().toLowerCase();
+    if (normalizedQuery === query) return alertOnRepeatedQuery(query);
 
-  searchFormSubmit = query => {
-    if (query === this.state.query) {
-      return;
-    }
-
-    this.setState({
-      images: [],
-      query,
-      page: 1,
-      totalImages: 0,
-    });
+    setImages([]);
+    setQuery(normalizedQuery);
+    setPage(1);
+    setTotalImages(0);
   };
 
-  onLoadMoreBtnClick = () => {
-    this.setState(prevState => ({ page: prevState.page + 1 }));
-  };
+  const onLoadMoreBtnClick = () => setPage(prevPage => prevPage + 1);
 
-  onWindowScroll = () => {
+  const onWindowScroll = () => {
     document.documentElement.scrollTop > 20
-      ? this.setState({ showTopButton: true })
-      : this.setState({ showTopButton: false });
+      ? setShowTopButton(true)
+      : setShowTopButton(false);
   };
 
-  onTopBtnClick = () => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
+  const onTopBtnClick = () => window.scrollTo({ top: 0, behavior: 'smooth' });
 
-  render() {
-    const { images, totalImages, showTopButton, status } = this.state;
-    const showLoadButton =
-      totalImages !== images.length && status === 'resolved';
-
-    return (
-      <>
-        <Searchbar onSubmit={this.searchFormSubmit} />
-        {!!images.length && <ImageGallery images={images} />}
-        {status === 'pending' && <Loader />}
-        {showLoadButton && <LoadButton onClick={this.onLoadMoreBtnClick} />}
-        {showTopButton && <TopButton onClick={this.onTopBtnClick} />}
-        <ToastContainer autoClose={2500} newestOnTop theme="colored" />
-      </>
-    );
-  }
-}
+  return (
+    <>
+      <Searchbar onSubmit={searchFormSubmit} />
+      {!!images.length && <ImageGallery images={images} />}
+      {status === Status.PENDING && <Loader />}
+      {showLoadButton && <LoadButton onClick={onLoadMoreBtnClick} />}
+      {showTopButton && <TopButton onClick={onTopBtnClick} />}
+      <ToastContainer autoClose={2500} newestOnTop theme="colored" />
+    </>
+  );
+};
