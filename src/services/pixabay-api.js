@@ -1,29 +1,30 @@
 import axios from 'axios';
 
-const BASE_URL = 'https://pixabay.com/api/';
 const API_KEY = '32823425-3cb9791a2d27dd26f71023aa3';
+axios.defaults.baseURL = 'https://pixabay.com/api/';
+axios.defaults.params = {
+  key: API_KEY,
+  image_type: 'photo',
+  orientation: 'horizontal',
+  per_page: 12,
+};
 
-export const getImagesByQuery = async (query, page) => {
+export const getPixabayImages = async (query, page) => {
   const params = {
-    key: API_KEY,
     q: query,
-    image_type: 'photo',
-    orientation: 'horizontal',
     page,
-    per_page: 12,
   };
 
-  const { data } = await axios.get(BASE_URL, { params });
+  const { data } = await axios.get('', { params });
   const images = data.hits.map(
     ({ id, tags, webformatURL, largeImageURL }, idx) => ({
       id,
-      tags,
-      webformatURL,
-      largeImageURL,
+      alt: tags,
+      smallUrl: webformatURL,
+      largeUrl: largeImageURL,
       isScrollAnchor: !idx,
     })
   );
-  const totalImages = data.totalHits;
 
-  return { images, totalImages };
+  return { images, totalImages: data.totalHits };
 };

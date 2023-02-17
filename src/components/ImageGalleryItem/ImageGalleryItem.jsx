@@ -5,9 +5,9 @@ import { pageSmoothScroll } from 'services';
 import { Item, Image } from './ImageGalleryItem.styled';
 
 export const ImageGalleryItem = ({
-  tags,
-  webformatURL,
-  largeImageURL,
+  alt,
+  smallUrl,
+  largeUrl,
   isScrollAnchor,
 }) => {
   const [showModal, setShowModal] = useState(false);
@@ -25,14 +25,14 @@ export const ImageGalleryItem = ({
   return (
     <Item>
       <Image
-        src={webformatURL}
-        alt={tags}
+        src={smallUrl}
+        alt={alt}
         onClick={toggleModal}
         ref={elementToScroll}
       />
       {showModal && (
         <Modal onClose={toggleModal}>
-          <img src={largeImageURL} alt={tags} />
+          <img src={largeUrl} alt={alt} />
         </Modal>
       )}
     </Item>
@@ -40,8 +40,8 @@ export const ImageGalleryItem = ({
 };
 
 ImageGalleryItem.propTypes = {
-  tags: PropTypes.string.isRequired,
-  webformatURL: PropTypes.string.isRequired,
-  largeImageURL: PropTypes.string.isRequired,
+  alt: PropTypes.string.isRequired,
+  smallUrl: PropTypes.string.isRequired,
+  largeUrl: PropTypes.string.isRequired,
   isScrollAnchor: PropTypes.bool.isRequired,
 };

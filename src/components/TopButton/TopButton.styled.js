@@ -2,13 +2,13 @@ import styled from 'styled-components';
 
 export const Button = styled.button`
   position: fixed;
-  bottom: 24px;
+  bottom: 40px;
   right: 24px;
   z-index: 50;
   justify-content: center;
   align-items: center;
-  width: 56px;
-  height: 56px;
+  width: 48px;
+  height: 48px;
   color: #e0e0e0;
   background-color: transparent;
   border: none;

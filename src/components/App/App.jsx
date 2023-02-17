@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import {
-  getImagesByQuery,
+  getPixabayImages,
   alertOnResolved,
   alertOnRejected,
   alertOnRepeatedQuery,
@@ -14,6 +14,7 @@ import {
   LoadButton,
   TopButton,
 } from 'components';
+import { Container } from './App.styled';
 
 const Status = {
   IDLE: 'idle',
@@ -27,10 +28,10 @@ export const App = () => {
   const [query, setQuery] = useState('');
   const [page, setPage] = useState(1);
   const [totalImages, setTotalImages] = useState(0);
-  const [showTopButton, setShowTopButton] = useState(false);
+  const [showTopBtn, setShowTopBtn] = useState(false);
   const [status, setStatus] = useState(Status.IDLE);
 
-  const showLoadButton =
+  const showLoadBtn =
     totalImages !== images.length && status === Status.RESOLVED;
 
   useEffect(() => {
@@ -43,18 +44,21 @@ export const App = () => {
   useEffect(() => {
     if (!query) return;
 
-    setStatus(Status.PENDING);
-    getImagesByQuery(query, page)
-      .then(({ images, totalImages }) => {
+    const getImages = async () => {
+      try {
+        setStatus(Status.PENDING);
+        const { images, totalImages } = await getPixabayImages(query, page);
         alertOnResolved(images.length, totalImages, page);
         setImages(prevImages => [...prevImages, ...images]);
         setTotalImages(totalImages);
         setStatus(Status.RESOLVED);
-      })
-      .catch(() => {
+      } catch (error) {
         setStatus(Status.REJECTED);
         alertOnRejected();
-      });
+      }
+    };
+
+    getImages();
   }, [page, query]);
 
   const searchFormSubmit = searchQuery => {
@@ -71,20 +75,20 @@ export const App = () => {
 
   const onWindowScroll = () => {
     document.documentElement.scrollTop > 20
-      ? setShowTopButton(true)
-      : setShowTopButton(false);
+      ? setShowTopBtn(true)
+      : setShowTopBtn(false);
   };
 
   const onTopBtnClick = () => window.scrollTo({ top: 0, behavior: 'smooth' });
 
   return (
-    <>
+    <Container>
       <Searchbar onSubmit={searchFormSubmit} />
       {!!images.length && <ImageGallery images={images} />}
       {status === Status.PENDING && <Loader />}
-      {showLoadButton && <LoadButton onClick={onLoadMoreBtnClick} />}
-      {showTopButton && <TopButton onClick={onTopBtnClick} />}
+      {showLoadBtn && <LoadButton onClick={onLoadMoreBtnClick} />}
+      {showTopBtn && <TopButton onClick={onTopBtnClick} />}
       <ToastContainer autoClose={2500} newestOnTop theme="colored" />
-    </>
+    </Container>
   );
 };

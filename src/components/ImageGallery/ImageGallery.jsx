@@ -4,12 +4,12 @@ import { List } from './ImageGallery.styled';
 
 export const ImageGallery = ({ images }) => (
   <List>
-    {images.map(({ id, tags, webformatURL, largeImageURL, isScrollAnchor }) => (
+    {images.map(({ id, alt, smallUrl, largeUrl, isScrollAnchor }) => (
       <ImageGalleryItem
         key={id}
-        tags={tags}
-        webformatURL={webformatURL}
-        largeImageURL={largeImageURL}
+        alt={alt}
+        smallUrl={smallUrl}
+        largeUrl={largeUrl}
         isScrollAnchor={isScrollAnchor}
       />
     ))}
@@ -20,9 +20,9 @@ ImageGallery.propTypes = {
   images: PropTypes.arrayOf(
     PropTypes.shape({
       id: PropTypes.number.isRequired,
-      tags: PropTypes.string.isRequired,
-      webformatURL: PropTypes.string.isRequired,
-      largeImageURL: PropTypes.string.isRequired,
+      alt: PropTypes.string.isRequired,
+      smallUrl: PropTypes.string.isRequired,
+      largeUrl: PropTypes.string.isRequired,
       isScrollAnchor: PropTypes.bool.isRequired,
     }).isRequired
   ).isRequired,

@@ -8,4 +8,4 @@ export const TopButton = ({ onClick }) => (
   </Button>
 );
 
-Button.propTypes = { onClick: PropTypes.func.isRequired };
+TopButton.propTypes = { onClick: PropTypes.func.isRequired };

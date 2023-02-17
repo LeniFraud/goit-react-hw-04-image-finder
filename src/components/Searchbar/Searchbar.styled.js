@@ -9,7 +9,6 @@ export const Header = styled.header`
   justify-content: center;
   align-items: center;
   min-height: 64px;
-  margin-bottom: 16px;
   padding: 12px 24px;
   color: #fff;
   background-color: #3f51b5;
